@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem84
+    public class Problem084
     {
 
         public GameBoard Board { get; set; }
 
-        public Problem84()
+        public Problem084()
         {
             Board = new GameBoard();
         }

@@ -11,7 +11,7 @@ using Microsoft.JScript.Vsa;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem93
+    public class Problem093
     {
 
         /*

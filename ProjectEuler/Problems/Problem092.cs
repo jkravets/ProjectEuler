@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem92
+    public class Problem092
     {
 
         /*

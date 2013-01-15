@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem95
+    public class Problem095
     {
 
         public Dictionary<int, List<int>> _primeFactorization { get; set; }
         
-        public Problem95()
+        public Problem095()
         {
             _primeFactorization = new Dictionary<int, List<int>>();
             _primeFactorization[0] = new List<int>();

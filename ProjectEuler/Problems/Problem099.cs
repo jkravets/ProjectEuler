@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem99
+    public class Problem099
     {
         public void Solve()
         {

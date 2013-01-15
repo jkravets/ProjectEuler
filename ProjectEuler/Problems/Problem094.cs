@@ -9,7 +9,7 @@ using System.Numerics;
 
 namespace ProjectEuler.Problems
 {
-    public class Problem94
+    public class Problem094
     {
         /*
          * 

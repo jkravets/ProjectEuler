@@ -62,22 +62,25 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\Combinations.cs" />
+    <Compile Include="Helpers\ListExtensions.cs" />
     <Compile Include="Problems\Problem100.cs" />
     <Compile Include="Problems\Problem101.cs" />
     <Compile Include="Problems\Problem102.cs" />
-    <Compile Include="Problems\Problem84.cs" />
-    <Compile Include="Problems\Problem86.cs" />
-    <Compile Include="Problems\Problem87.cs" />
-    <Compile Include="Problems\Problem88.cs" />
-    <Compile Include="Problems\Problem90.cs" />
-    <Compile Include="Problems\Problem91.cs" />
-    <Compile Include="Problems\Problem92.cs" />
-    <Compile Include="Problems\Problem93.cs" />
-    <Compile Include="Problems\Problem94.cs" />
-    <Compile Include="Problems\Problem95.cs" />
-    <Compile Include="Problems\Problem97.cs" />
-    <Compile Include="Problems\Problem98.cs" />
-    <Compile Include="Problems\Problem99.cs" />
+    <Compile Include="Problems\Problem084.cs" />
+    <Compile Include="Problems\Problem086.cs" />
+    <Compile Include="Problems\Problem087.cs" />
+    <Compile Include="Problems\Problem088.cs" />
+    <Compile Include="Problems\Problem089.cs" />
+    <Compile Include="Problems\Problem090.cs" />
+    <Compile Include="Problems\Problem091.cs" />
+    <Compile Include="Problems\Problem092.cs" />
+    <Compile Include="Problems\Problem093.cs" />
+    <Compile Include="Problems\Problem094.cs" />
+    <Compile Include="Problems\Problem095.cs" />
+    <Compile Include="Problems\Problem096.cs" />
+    <Compile Include="Problems\Problem097.cs" />
+    <Compile Include="Problems\Problem098.cs" />
+    <Compile Include="Problems\Problem099.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -95,6 +98,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\roman.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\sudoku.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\triangles.txt">

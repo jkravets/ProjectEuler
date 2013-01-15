@@ -54,7 +54,7 @@ namespace ProjectEuler.Problems
 
         public double Distance(Point other)
         {
-            return Math.Sqrt(Math.Pow(x + other.x, 2.0) + Math.Pow(y + other.y, 2.0));
+            return Math.Sqrt(Math.Pow(x - other.x, 2.0) + Math.Pow(y - other.y, 2.0));
         }
 
     }
@@ -154,14 +154,12 @@ namespace ProjectEuler.Problems
             var BC = new SlopeLine(B, C);
             var CA = new SlopeLine(C, A);
 
-            var largestShortest = Math.Max(AB.Shortest(C), BC.Shortest(A));
-            largestShortest = Math.Max(largestShortest, CA.Shortest(B));
+            var largestShortest = Math.Max(AB.Shortest(C).Distance(C), BC.Shortest(A).Distance(A));
+            largestShortest = Math.Max(largestShortest, CA.Shortest(B).Distance(B));
 
             //Now check for the contains
             var e = 0.000001;
-            return (ABAO.x - CAAO.x < e && ABAO.y - CAAO.y < e) &&
-                    (ABBO.x - BCBO.x < e && ABBO.y - BCBO.y < e) &&
-                    (BCCO.x - CACO.x < e && BCCO.y - CACO.y < e);
+            return false;
             
         }
     }
