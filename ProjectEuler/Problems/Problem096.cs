@@ -28,7 +28,7 @@ namespace ProjectEuler.Problems
 
                         for (int j = 0; j < 9; j++)
                         {
-                            var value =  Int32.Parse(line[j].ToString());
+                            var value = Int32.Parse(line[j].ToString());
                             if (value != 0)
                             {
                                 puzzle[i, j] = new List<int>() { value };
@@ -41,13 +41,14 @@ namespace ProjectEuler.Problems
             #endregion
 
             int topLeftSum = 0;
-            foreach(var puzzle in puzzles)
+            foreach (var puzzle in puzzles)
             {
+                Console.WriteLine("Puzzle " + puzzle.Name);
                 puzzle.Solve();
-                topLeftSum += puzzle[0,0].First() + puzzle[0,1].First() + puzzle[0,2].First();
+                topLeftSum += puzzle[0, 0].First()*100 + puzzle[0, 1].First()*10 + puzzle[0, 2].First();
             }
 
-            var answer = 100;
+            var answer = topLeftSum;
 
 
         }
@@ -60,11 +61,11 @@ namespace ProjectEuler.Problems
 
         public List<int> this[int i, int j]
         {
-            get 
+            get
             {
                 return PMatrix[i, j];
             }
-            set 
+            set
             {
                 PMatrix[i, j] = value;
             }
@@ -107,7 +108,7 @@ namespace ProjectEuler.Problems
 
         public int PScore
         {
-            get 
+            get
             {
                 var score = 0;
                 for (int i = 0; i < 9; i++)
@@ -121,29 +122,150 @@ namespace ProjectEuler.Problems
                         }
                     }
                 }
+
                 return score;
             }
         }
 
+
+        public bool ConsistencyCheck()
+        {
+            try
+            {
+                //Also check consistency
+                for (int n = 1; n <= 9; n++)
+                {
+                    for (int i = 0; i < 9; i++)
+                    {
+                        var found = 0;
+                        PerformHLine(i, (ii, jj) => { found += this[ii, jj].Count == 1 && this[ii, jj].Contains(n) ? 1 : 0; });
+                        if (found > 1)
+                        {
+                            throw new Exception("Horizontal line is inconsistent");
+                        }
+
+                    }
+
+                    for (int j = 0; j < 9; j++)
+                    {
+                        var found = 0;
+                        PerformVLine(j, (ii, jj) => { found += this[ii, jj].Count == 1 && this[ii, jj].Contains(n) ? 1 : 0; }); if (found > 1)
+                        {
+                            throw new Exception("Verical line is inconsistent");
+                        }
+                    }
+
+                    for (int si = 0; si < 9; si += 3)
+                    {
+                        for (int sj = 0; sj < 9; sj += 3)
+                        {
+                            var found = 0;
+                            PerformSection(si, sj, (ii, jj) => { found += this[ii, jj].Count == 1 && this[ii, jj].Contains(n) ? 1 : 0; });
+                            if (found > 1)
+                            {
+                                throw new Exception("Section line is inconsistent");
+                            }
+                        }
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool _Solve()
+        {
+            try
+            {
+
+                var oldScore = PScore;
+                while (PScore > 81)
+                {
+                    LookForLoneNumber();
+
+                    LookForGroup(1);
+                    LookForGroup(2);
+                    LookForGroup(3);
+
+                    LookForSectionCut();
+
+
+                    if (!ConsistencyCheck())
+                    {
+                        throw new Exception("Not consistent");
+                    }
+
+                    //We need to make a guess
+                    if (PScore >= oldScore)
+                    {
+                        var guesses = new List<Tuple<int, int>>();
+                        for (int i = 0; i < 9; i++)
+                        {
+                            for (int j = 0; j < 9; j++)
+                            {
+                                if (this[i, j].Count > 1)
+                                {
+                                    guesses.Add(new Tuple<int, int>(i, j));
+                                }
+                            }
+                        }
+
+
+                        foreach (var guess in guesses)
+                        {
+                            foreach (var n in this[guess.Item1, guess.Item2])
+                            {
+                                var guessPuzzle = new SudokuPuzzle();
+                                guessPuzzle.Name = guessPuzzle.Name;
+                                for (int i = 0; i < 9; i++)
+                                {
+                                    for (int j = 0; j < 9; j++)
+                                    {
+                                        guessPuzzle[i, j] = this[i, j].ToList();
+                                    }
+                                }
+                                guessPuzzle[guess.Item1, guess.Item2] = new List<int>() { n };
+                                try
+                                {
+                                    guessPuzzle.Solve();
+                                    for (int i = 0; i < 9; i++)
+                                    {
+                                        for (int j = 0; j < 9; j++)
+                                        {
+                                            this[i, j] = guessPuzzle[i, j].ToList();
+                                        }
+                                    }
+                                    break;
+                                }
+                                catch (Exception e)
+                                {
+                                    //otherwise try another guess
+                                }
+                            }
+                        }
+
+                    }
+                    oldScore = PScore;
+
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
+        }
+
         public void Solve()
         {
-            var oldScore = PScore;
-            while (PScore > 81)
+            if (!_Solve())
             {
-                LookForLoneNumber();
-                LookForGroup(1);
-                LookForGroup(2);
-                LookForGroup(3);
-                
-
-                if (PScore >= oldScore)
-                {
-                    throw new Exception("Possibility didn't go down");
-                }
-                oldScore = PScore;
+                throw new Exception("Could not solve the puzzle");
             }
-
-        
         }
 
         private void PerformHLine(int i, Action<int, int> lambda)
@@ -182,7 +304,7 @@ namespace ProjectEuler.Problems
         {
             var groups = new List<int>() { 1, 2, 3, 4, 5, 6, 7, 8, 9 }.Combinations(size);
 
-            
+
             //First look in a horizontal line
             for (int i = 0; i < 9; i++)
             {
@@ -207,7 +329,7 @@ namespace ProjectEuler.Problems
                     }
                 }
             }
-            
+
             //Second look in the vertical line
             for (int j = 0; j < 9; j++)
             {
@@ -234,11 +356,11 @@ namespace ProjectEuler.Problems
                 }
             }
 
-            
+
             for (int si = 0; si < 9; si += 3)
             {
                 for (int sj = 0; sj < 9; sj += 3)
-                { 
+                {
                     foreach (var group in groups)
                     {
                         int seenGroupCount = 0, seenAnyCount = 0;
@@ -258,7 +380,7 @@ namespace ProjectEuler.Problems
                                 }
                             });
                         }
-                
+
                     }
                 }
             }
@@ -273,8 +395,8 @@ namespace ProjectEuler.Problems
                 for (int j = 0; j < 9; j++)
                 {
                     if (this[i, j].Count == 1)
-                    { 
-                        
+                    {
+
                         //Clean the horizontal line
                         PerformHLine(i, (ii, jj) =>
                         {
@@ -288,7 +410,7 @@ namespace ProjectEuler.Problems
                             }
                         });
 
-                        
+
                         //Clean the vertical line
                         PerformVLine(j, (ii, jj) =>
                         {
@@ -315,10 +437,65 @@ namespace ProjectEuler.Problems
                             }
                         });
                     }
-                
+
                 }
             }
         }
+
+        private void LookForSectionCut()
+        {
+            for (int si = 0; si < 9; si += 3)
+            {
+                for (int sj = 0; sj < 9; sj += 3)
+                {
+                    for (int n = 1; n <= 9; n++)
+                    {
+                        var found = new List<Tuple<int, int>>();
+                        PerformSection(si, sj, (sii, sjj) =>
+                        {
+
+                            if (this[sii, sjj].Contains(n))
+                            {
+                                found.Add(new Tuple<int, int>(sii, sjj));
+                            }
+
+                        });
+
+                        //Check for horizontal
+                        if (found.Count > 1)
+                        {
+                            //If the i's are equal we have a horizontal cut
+                            if (found.All(f => f.Item1 == found[0].Item1))
+                            {
+                                PerformHLine(found[0].Item1, (ii, jj) =>
+                                {
+                                    if (!found.Any(f => f.Item2 == jj))
+                                    {
+                                        this[ii, jj].Remove(n);
+                                    }
+                                });
+                            }
+
+                            //If the j's are equal we have a vertical cut
+                            if (found.All(f => f.Item2 == found[0].Item2))
+                            {
+                                PerformVLine(found[0].Item2, (ii, jj) =>
+                                {
+                                    if (!found.Any(f => f.Item1 == ii))
+                                    {
+                                        this[ii, jj].Remove(n);
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+
+
     }
 
 
