@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
+
+    
     public class Problem102
     {
         public void Solve()
@@ -25,53 +27,142 @@ namespace ProjectEuler.Problems
                         B = new Point() { x = Double.Parse(c[2]), y = Double.Parse(c[3]) },
                         C = new Point() { x = Double.Parse(c[4]), y = Double.Parse(c[5]) }
                     });
+                    triangles.Last().InitializeSlopes();
                 }
             }
 
 
+            /* OLD
+            var p = new Point() { x = 1.0, y = 1.0 };
+            var p2 = new Point() { x = 1.0, y = 1.0 };
             var sum = 0;
-            var zero = new Point() { x = 0, y = 0 };
             foreach (var triangle in triangles)
             {
+                if (triangle.A.Equals(triangle.B) || triangle.A.Equals(triangle.C) || triangle.B.Equals(triangle.C))
+                {
+                    var what = "";
+                }
+
+                if (triangle.A.Equals(zero) || triangle.B.Equals(zero) || triangle.C.Equals(zero))
+                {
+                    var what = "";
+                }
+
+
+
+                if (triangle.AB.IsVertical || triangle.BC.IsVertical || triangle.CA.IsVertical)
+                {
+                    var what = "";
+                }
+
+                if (triangle.AB.IsHorizontal || triangle.BC.IsHorizontal || triangle.CA.IsHorizontal)
+                {
+                    var what = "";
+                }
+
+
                 sum += triangle.Contains(zero) ? 1 : 0;
             }
-            var answer = sum;
+            */
 
 
+            var zero = new Point() { x = 0, y = 0 };
+            var zeroTriangles = triangles.Where(t => t.Contains(zero)).ToList();
+            
+            //The trick is some of the triangles are duplicates !!!
+            var distinctZeroTriangles = zeroTriangles.Distinct(new TriangleEqualityComparer());
+
+
+            var answer = distinctZeroTriangles.Count();
+            var rofl = answer;
         }
     }
 
+    public class TriangleEqualityComparer : IEqualityComparer<Triangle>
+    {
 
+        public bool Equals(Triangle x, Triangle y)
+        {
+            // ABC => ABC
+            var t1 = x.A.Equals(y.A) && x.B.Equals(y.B) && x.C.Equals(y.C);
+            
+            // ABC => BCA
+            var t2 = x.A.Equals(y.B) && x.B.Equals(y.C) && x.C.Equals(y.A);
+            
+            // ABC => CAB
+            var t3 = x.A.Equals(y.C) && x.B.Equals(y.A) && x.C.Equals(y.B);
+            
+            // ABC => CBA
+            var t4 = x.A.Equals(y.C) && x.B.Equals(y.B) && x.C.Equals(y.A);
+
+            return t1 || t2 || t3 || t4;
+
+
+        }
+
+        public int GetHashCode(Triangle obj)
+        {
+            return obj.A.GetHashCode() + obj.B.GetHashCode() + obj.C.GetHashCode();
+        }
+    }
     public class Point
     {
         public double x { get; set; }
         public double y { get; set; }
 
+        public override int GetHashCode()
+        {
+            return x.GetHashCode() + y.GetHashCode();
+        }
         public override string ToString()
         {
-            return "(" + x + "," + y + ")";
+            return "(" + x + " , " + y + ")";
         }
 
-        public double Distance(Point other)
+        public override bool Equals(object obj)
         {
-            return Math.Sqrt(Math.Pow(x - other.x, 2.0) + Math.Pow(y - other.y, 2.0));
+            var other = obj as Point;
+            if (other != null)
+            {
+                return other.x == this.x && other.y == this.y;
+            }
+            return base.Equals(obj);
         }
-
     }
 
     public class SlopeLine
     {
+        public Point P1 { get; private set; }
+        public Point P2 { get; private set; }
         public double m { get; private set; }
         public double b { get; private set; }
+        public bool IsVertical
+        {
+            get 
+            {
+                return P1.x == P2.x;
+            }
+        }
+
+        public bool IsHorizontal
+        {
+            get
+            {
+                return P1.y == P2.y;
+            }
+        }
+
 
         public SlopeLine(Point p1, Point p2)
         {
+            P1 = p1;
+            P2 = p2;
             m = (p2.y - p1.y) / (p2.x - p1.x);
             b = p1.y - m * p1.x;
         }
 
         public double Y(double x)
-        {
+        {            
             return m * x + b;
         }
         public double X(double y)
@@ -79,88 +170,102 @@ namespace ProjectEuler.Problems
             return (y - b) / m;
         }
 
-        public Point Intersection(SlopeLine other)
-        { 
-            //y = m1*x + b1
-            //y = m2*x + b2
-
-            //m1*x + b1 = m2*x + b2
-            //x(m1 - m2) = b2 - b1
-            //x = (b2 - b1)/(m1 - m2)
-
-            var p = new Point();
-            p.x = (other.b - this.b) / (this.m - other.m);
-            p.y = this.m * p.x + this.b;
-
-            return p;
+        public double MinBoundX
+        {
+            get 
+            {
+                return Math.Min(P1.x, P2.x);
+            }
         }
 
-        public Point Shortest(Point other)
-        { 
-            // y = mx + b
-            // perpendicular line is
-            
-            // y = (1/m)x + b2
-            // 
-            // mx + b = (1/m)x + b2
-
-            // mx - (1/m)x = b2 - b
-            // x(m - 1/m) = b2 - b
-            // x = (b2 - b)/(m - 1/m)
-
-
-
-            //o.y = (1/m)o.x + b2
-            //b2 = o.y - (1/m)o.x
-
-            // s.x = (o.y - (1/m)o.x)/(m - 1/m)
-
-            var m2 = 1.0 / m;
-            var b2 = other.y - m2 * other.x;
-
-            var shortest = new Point();
-            shortest.x = (other.y - m2 * other.x) / (m - m2);
-            shortest.y = m * shortest.x + b;
-
-            return shortest;
-            
+        public double MaxBoundX
+        {
+            get
+            {
+                return Math.Max(P1.x, P2.x);
+            }
         }
+
+        public double MinBoundY
+        {
+            get
+            {
+                return Math.Min(P1.y, P2.y);
+            }
+        }
+
+        public double MaxBoundY
+        {
+            get
+            {
+                return Math.Max(P1.y, P2.y);
+            }
+        }
+
     }
     public class Triangle
     {
         public Point A { get; set; }
         public Point B { get; set; }
         public Point C { get; set; }
-        
-        /* 
-         * A = (x1,y1)
-         * B = (x2,y2)
-         * C = (x3,y3)
-         * 
-         * There are three line equations
-         * 
-         * AB => y = mx + b
-         * BC => y = mx + b
-         * CA => y = mx + b
-         * 
-         * Also find
-         * AO
-         * BO
-         * CO 
-         */
+
+        public SlopeLine AB { get; set; }
+        public SlopeLine BC { get; set; }
+        public SlopeLine CA { get; set; }
+
+        public void InitializeSlopes()
+        {
+            AB = new SlopeLine(A, B);
+            BC = new SlopeLine(B, C);
+            CA = new SlopeLine(C, A);
+        }
+
+        public override string ToString()
+        {
+            return A + " " + B + " " + C;
+        }
+
         public bool Contains(Point o)
         {
-            var AB = new SlopeLine(A, B);
-            var BC = new SlopeLine(B, C);
-            var CA = new SlopeLine(C, A);
+            var yMax = Math.Max(Math.Max(A.y, B.y), C.y);
+            var yMin = Math.Min(Math.Min(A.y, B.y), C.y);
 
-            var largestShortest = Math.Max(AB.Shortest(C).Distance(C), BC.Shortest(A).Distance(A));
-            largestShortest = Math.Max(largestShortest, CA.Shortest(B).Distance(B));
+            var xMax = Math.Max(Math.Max(A.x, B.x), C.x);            
+            var xMin = Math.Min(Math.Min(A.x, B.x), C.x);
 
-            //Now check for the contains
-            var e = 0.000001;
-            return false;
             
+            //Only consider values that are valid
+            var validValues = new List<double>();
+            
+            Func<double, double, double, bool> boundCheck = (min, v, max) =>
+            {
+                return min <= v && v <= max;
+            };
+
+            if (!boundCheck(xMin, o.x, xMax) || !(boundCheck(yMin, o.y, yMax))) 
+            {
+                return false;
+            }
+
+            Action<SlopeLine> checkValid = (s) =>
+            {
+                var yS = s.Y(o.x);
+                if (boundCheck(s.MinBoundY, yS, s.MaxBoundY))
+                {
+                    validValues.Add(yS);
+                }
+            };
+
+            checkValid(AB);
+            checkValid(BC);
+            checkValid(CA);
+
+                        
+            var yMinBound = validValues.Min();
+            var yMaxBound = validValues.Max();
+
+            return boundCheck(yMinBound, o.y, yMaxBound);
+
         }
     }
 }
