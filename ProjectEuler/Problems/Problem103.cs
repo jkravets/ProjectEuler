@@ -10,7 +10,8 @@ namespace ProjectEuler.Problems
     {
         public void Solve()
         {
-            
+
+            var constraints = ConstraintEquations(3);
 
             //This is the maximum sum we are looking for
             var max = SetGuess(7).Sum();
@@ -19,6 +20,71 @@ namespace ProjectEuler.Problems
         }
 
 
+
+        public List<List<int>> ConstraintEquations(int n)
+        {            
+            //Get all combinations of n
+            var constraints = ConstraintCombination(n);
+
+
+            //Apply the constraint rule checks
+            Func<List<int>, bool> CheckZeros = (c) =>
+            {
+                return !c.All(a => a == 0);
+            };
+
+            Func<List<int>, bool> CheckPositives = (c) =>
+            {
+                return !c.All(a => a >= 0);
+            };
+
+            Func<List<int>, bool> CheckZeroCount = (c) =>
+            {
+                return c.Count(a => a > 0) >= c.Count(a => a == -1);
+            };
+
+            Func<List<int>, bool> GroupCheck = (c) =>
+            {
+                var positives = c.Count(a => a > 0);
+                var negatives = c.Count(a => a == -1);
+                if (positives == negatives && positives == 1)
+                {
+                    var indexP = c.IndexOf(1);
+                    var indexN = c.IndexOf(-1);
+                    return indexP == indexN + 1;
+                }
+                return true;
+            };
+
+
+            return constraints.Where(CheckZeros).Where(CheckPositives).Where(CheckZeroCount).Where(GroupCheck).ToList();
+
+        }
+
+        private List<List<int>> ConstraintCombination(int n)
+        {
+            var constraints = new List<List<int>>();
+            if (n >= 1)
+            {
+                for (int i = -1; i <= 1; i++)
+                {
+                    if (n > 1)
+                    {
+                        foreach (var subConstraint in ConstraintCombination(n - 1))
+                        {
+                            var constraint = new List<int>() { i };
+                            constraint.AddRange(subConstraint);
+                            constraints.Add(constraint);
+                        }
+                    }
+                    else 
+                    {
+                        constraints.Add(new List<int>() { i });
+                    }
+                }
+            }
+            return constraints;
+        }
 
 
         public List<int> SetGuess(int n)
