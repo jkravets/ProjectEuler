@@ -1,17 +1,55 @@
-﻿using System;
+﻿using MathNet.Numerics.LinearAlgebra.Single;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ProjectEuler.Problems
 {
     public class Problem103
     {
+
+        //Trying to solve the problem using LPSolve and .lp file
         public void Solve()
         {
 
-            var constraints = ConstraintEquations(3);
+            var variables = 3;
+            var constraints = ConstraintEquations(variables);
+            
+            var totalVariables = constraints.Count() + 1 + variables;
+            var A = new float[1 + constraints.Count(),totalVariables];
+            var b = new float[totalVariables];
+
+            //Create the first constraint line
+            float e = 0.00001F;
+            for (int i = 1; i < b.Count(); i++)
+            {
+                b[i] = e;
+            }
+            A[0, 0] = 1;
+            for (int j = 1; j <= variables; j++)
+            {
+                A[0, j] = -1;
+            }
+
+            var si = 1;
+            foreach (var constraint in constraints)
+            {
+
+                for (int j = 1; j <= variables; j++)
+                {
+                    A[si, j] = constraint[j - 1];
+                }
+                A[si, si + variables] = 1;
+                si++;
+            }
+
+            var matrixA = new DenseMatrix(A);
+            var vectorb = new DenseVector(b);
+
+            var coefficents = matrixA.QR().Solve(vectorb);
+
+
 
             //This is the maximum sum we are looking for
             var max = SetGuess(7).Sum();
