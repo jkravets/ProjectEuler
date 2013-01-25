@@ -13,46 +13,123 @@ namespace ProjectEuler.Problems
         public void Solve()
         {
 
-            var variables = 3;
-            var constraints = ConstraintEquations(variables);
+            var guess = SetGuess(7);
             
+            var variables = 7;
+            var constraints = ConstraintEquations(variables);            
             var totalVariables = constraints.Count() + 1 + variables;
-            var A = new float[1 + constraints.Count(),totalVariables];
-            var b = new float[totalVariables];
+            var e = 0.1;
+            var M = 10000;
 
-            //Create the first constraint line
-            float e = 0.00001F;
-            for (int i = 1; i < b.Count(); i++)
+            var lpString = "";
+            lpString += "min: ";
+            for (int i = 1; i <= variables; i++)
             {
-                b[i] = e;
+                lpString += string.Format("+x{0} ", i);
             }
-            A[0, 0] = 1;
-            for (int j = 1; j <= variables; j++)
-            {
-                A[0, j] = -1;
-            }
+            lpString += ";";
 
-            var si = 1;
+            lpString += "\n";
+            var constraintCount = 1;
+            var numberNots = 0;
             foreach (var constraint in constraints)
             {
+                lpString += "\n";
 
-                for (int j = 1; j <= variables; j++)
+
+                var positives = constraint.Count(i => i == 1);
+                var negatives = constraint.Count(i => i == -1);
+                if (positives > 1 && positives == negatives)
                 {
-                    A[si, j] = constraint[j - 1];
+                    numberNots++;
+                    lpString += "\n";
+                    //Write this one as an inequality
+                    for (int i = 1; i <= variables; i++)
+                    {
+                        if (constraint[i - 1] != 0)
+                        {
+
+                            lpString += string.Format("{0}x{1} ",
+                                constraint[i - 1] > 0 ? "+" : "-",
+                                i);
+
+                        }
+                    }
+                    lpString += " + " + M + "*i" + constraintCount;
+                    lpString += " >= " + e + ";";
+                    lpString += "\n";
+
+                    //Write this one as an inequality
+                    for (int i = 1; i <= variables; i++)
+                    {
+                        if (constraint[i - 1] != 0)
+                        {
+                            //Swap the signs
+                            lpString += string.Format("{0}x{1} ",
+                                constraint[i - 1] > 0 ? "-" : "+",
+                                i);
+
+                        }
+                    }
+
+                    lpString += string.Format(" + {0} - {0}*i{1}",M,constraintCount);
+                    lpString += " >= " + e + ";";
+                    lpString += "\n";
+
                 }
-                A[si, si + variables] = 1;
-                si++;
+                else
+                {
+
+                    for (int i = 1; i <= variables; i++)
+                    {
+                        if (constraint[i - 1] != 0)
+                        {
+
+                            lpString += string.Format("{0}x{1} ",
+                                constraint[i - 1] > 0 ? "+" : "-",
+                                i);
+
+                        }
+                    }
+                    lpString += " >= " + e + ";";
+                }
+                constraintCount++;
             }
 
-            var matrixA = new DenseMatrix(A);
-            var vectorb = new DenseVector(b);
+            lpString += "\n";
+            lpString += "int ";
+            for (int i = 1; i <= variables; i++)
+            {
+                lpString += string.Format("x{0},", i);
+            }
 
-            var coefficents = matrixA.QR().Solve(vectorb);
+            lpString = lpString.Remove(lpString.Length - 1, 1);
+            lpString += ";";
 
+            if (numberNots > 0)
+            {
 
+                lpString += "\n";
+                lpString += "bin ";
+                constraintCount = 1;
+                foreach (var constraint in constraints)
+                {
+                    var positives = constraint.Count(i => i == 1);
+                    var negatives = constraint.Count(i => i == -1);
+                    if (positives > 1 && positives == negatives)
+                    {
+                        lpString += string.Format("i{0},", constraintCount);
+                    }
+                    constraintCount++;
 
-            //This is the maximum sum we are looking for
-            var max = SetGuess(7).Sum();
+                }
+
+                lpString = lpString.Remove(lpString.Length - 1, 1);
+                lpString += ";";
+            }
+
+            //Take this string and place it inside the LPSolve program. After some time the solution should be calculated.
+            Console.WriteLine(lpString);
         
         
         }
@@ -64,28 +141,22 @@ namespace ProjectEuler.Problems
             //Get all combinations of n
             var constraints = ConstraintCombination(n);
 
-
-            //Apply the constraint rule checks
-            Func<List<int>, bool> CheckZeros = (c) =>
+            
+            //We want more positives than negatives
+            Func<List<int>, bool> PositivesFlowCheck = (c) =>
             {
-                return !c.All(a => a == 0);
-            };
-
-            Func<List<int>, bool> CheckPositives = (c) =>
-            {
-                return !c.All(a => a >= 0);
-            };
-
-            Func<List<int>, bool> CheckZeroCount = (c) =>
-            {
-                return c.Count(a => a > 0) >= c.Count(a => a == -1);
-            };
-
-            Func<List<int>, bool> GroupCheck = (c) =>
-            {
-                var positives = c.Count(a => a > 0);
+                var positives = c.Count(a => a == 1);
                 var negatives = c.Count(a => a == -1);
-                if (positives == negatives && positives == 1)
+                return positives >= negatives;
+            };
+
+            //The right hand side is always larger than left hand side
+            //Only check one to the right over
+            Func<List<int>, bool> RHSLargeCheck = (c) =>
+            {
+                var positives = c.Count(a => a == 1);
+                var negatives = c.Count(a => a == -1);
+                if (positives == 1 && negatives == 1)
                 {
                     var indexP = c.IndexOf(1);
                     var indexN = c.IndexOf(-1);
@@ -94,8 +165,29 @@ namespace ProjectEuler.Problems
                 return true;
             };
 
+            //Apply the constraint rule checks
+            Func<List<int>, bool> CheckSingleType = (c) =>
+            {
+                return !c.All(a => a == 0) && !c.All(a => a >= 0) && !c.All(a => a <= 0);
+            };
 
-            return constraints.Where(CheckZeros).Where(CheckPositives).Where(CheckZeroCount).Where(GroupCheck).ToList();
+            Func<List<int>, bool> HiddenRHSCheck = (c) =>
+            {
+                var positiveIndexes = new List<int>();
+                var negativeIndexes = new List<int>();
+                for (var i = 0; i < c.Count; i++)
+                {
+                    if (c[i] == 1)
+                        positiveIndexes.Add(i);
+                    else if (c[i] == -1)
+                        negativeIndexes.Add(i);
+                }
+                return positiveIndexes.Count == 1 || !negativeIndexes.All(i => positiveIndexes.All(j => i < j));
+
+            };
+
+
+            return constraints.Where(CheckSingleType).Where(PositivesFlowCheck).Where(RHSLargeCheck).Where(HiddenRHSCheck).ToList();
 
         }
 
