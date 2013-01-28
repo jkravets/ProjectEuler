@@ -66,6 +66,7 @@
   <ItemGroup>
     <Compile Include="Helpers\Combinations.cs" />
     <Compile Include="Helpers\ListExtensions.cs" />
+    <Compile Include="Problems\Problem106.cs" />
     <Compile Include="Problems\Problem100.cs" />
     <Compile Include="Problems\Problem101.cs" />
     <Compile Include="Problems\Problem102.cs" />
@@ -86,6 +87,7 @@
     <Compile Include="Problems\Problem099.cs" />
     <Compile Include="Problems\Problem103.cs" />
     <Compile Include="Problems\Problem104.cs" />
+    <Compile Include="Problems\Problem105.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -103,6 +105,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\roman.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\sets.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\sudoku.txt">
