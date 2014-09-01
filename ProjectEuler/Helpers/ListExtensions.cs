@@ -8,6 +8,11 @@ namespace ProjectEuler.Problems
 {
     public static class ListExtensions
     {
+
+        public static string PrettyPrint<T>(this IList<T> list)
+        {
+            return "[" + list.Aggregate("", (agg, i) => agg + "," + i.ToString()).Remove(0, 1) + "]";
+        }
         public static void RemoveRange<T>(this IList<T> list, IList<T> other)
         {
             for (int i = 0; i < other.Count; i++)
